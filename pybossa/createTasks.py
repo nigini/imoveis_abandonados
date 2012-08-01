@@ -105,7 +105,7 @@ def create_app(api_url, api_key, name=None, short_name=None,
         return 0
 
 
-def create_task(api_url, api_key, app_id, n_answers, coords=None):
+def create_task(api_url, api_key, app_id, n_answers, coord):
     """
     Creates tasks for the application
 
@@ -114,10 +114,9 @@ def create_task(api_url, api_key, app_id, n_answers, coords=None):
     :rtype: integer
     """
     # Data for the tasks
-    coords = {"lat":"-23.54066","lon":"-46.64124"}
     
     info = dict(question="Imovel abandonado?",
-                   n_answers=int(n_answers), coords=coords)
+                   n_answers=int(n_answers), coord=coord)
 
     data = dict(app_id=app_id, state=0, info=info,
                  calibration=0, priority_0=0)
@@ -224,9 +223,29 @@ def update_tasks(api_url, api_key, app='abandonados'):
         return False
 
 
-def get_coords():
-    #TODO: add some code here to get coords from the web interface
-    return None
+def get_coords(file_name):
+    print "Acquiring geoaddresses"
+
+    file = open(file_name, 'r')
+    data = file.read()
+    file.close()
+    data = data.split('\n')
+    
+    coords = []
+    for address in data:
+        add = address.decode('utf-8').replace(' ','+')
+        google_data = json.load(urllib2.urlopen
+                ('http://maps.google.com/maps/api/geocode/json?'+
+                'address='+add.encode('utf-8')+'&sensor=false'))
+        geolocation = google_data['results']
+        if len(geolocation) > 0:
+            lat = geolocation[0]['geometry']['location']['lat']
+            lng = geolocation[0]['geometry']['location']['lng']
+            print "Got geolocation for %s at (%s,%s)." %(address,lat,lng)
+            coords.append({'add':address,'lat':lat,'lon':lng})
+        else:
+            print "Could not get geolocation for %s." %(address)
+    return coords
 
 
 if __name__ == "__main__":
@@ -259,9 +278,9 @@ if __name__ == "__main__":
                       metavar="UPDATE-TASKS"
                      )
 
-    parser.add_option("-x", "--extra-task", action="store_true",
+    parser.add_option("-x", "--extra-task",
                       dest="add_more_tasks",
-                      help="Add more tasks",
+                      help="Add more tasks given a file with a address by line",
                       metavar="ADD-MORE-TASKS"
                       )
     # Modify the number of TaskRuns per Task
@@ -287,21 +306,19 @@ if __name__ == "__main__":
         print('Using API-KEY: %s' % options.api_key)
 
     if options.create_app:
-        app_id = create_app(options.api_url, options.api_key)
+        app_id = create_app(options.api_url, options.api_key) 
         
-        create_task(options.api_url, options.api_key, app_id, 30)
-        
-        
+    if options.add_more_tasks:
+        request = urllib2.Request('%s/api/app?short_name=%s' %
+                                  (options.api_url, 'abandonados'))
+        request.add_header('Content-type', 'application/json')
+        app = urllib2.urlopen(request).read()
+        app = json.loads(app)
+        app_id = app[0]['id']
+        for coord in get_coords(options.add_more_tasks):
+            create_task(options.api_url, options.api_key, app_id, 30, coord)
     else:
-        if options.add_more_tasks:
-            request = urllib2.Request('%s/api/app?short_name=%s' %
-                                      (options.api_url, 'abandonados'))
-            request.add_header('Content-type', 'application/json')
-
-            app = urllib2.urlopen(request).read()
-            app = json.loads(app)
-            app = app[0]
-            #TODO: call get_taskinfo and create task
+        parser.error("You must supply a file path with the addresses")
 
     if options.update_template:
         print "Updating app template"
