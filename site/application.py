@@ -1,11 +1,34 @@
+import urllib2
+import json
+
 from flask import Flask
 from flask import render_template
 
+import default_settings as settings
+
+
 app = Flask(__name__)
+app.config.from_object(settings)
+
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    
+    pybossa_host = app.config['PYBOSSA_HOST']
+    pybossa_port = app.config['PYBOSSA_PORT']
+    pybossa_server = 'http://%s:%d' %(pybossa_host, pybossa_port)
+    pybossa_app = app.config['PYBOSSA_APP']
+    
+    data = json.load(urllib2.urlopen(pybossa_server+'/api/app?short_name='+pybossa_app))
+    app_id = data[0]['id']
+    data = json.load(urllib2.urlopen("%s%s%d" %(pybossa_server,'/api/task?app_id=',app_id)))
+    
+    coords = []
+    for task in data:
+        coords.append({"task":task["id"],
+            "lat":task["info"]["coord"]["lat"],
+            "lon":task["info"]["coord"]["lon"]})
+    return render_template('index.html',app=pybossa_app,coords=json.dumps(coords))
 
 
 @app.route('/info')
@@ -14,4 +37,4 @@ def info():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5005)
+    app.run(debug=True, host=app.config['HOST'], port=app.config['PORT'])

@@ -12,10 +12,8 @@
     <script src="http://openlayers.org/api/OpenLayers.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
     <script>
-      $(window).load(function(){
-         var latitude = -23.55
-         var longitude = -46.63
-
+      $(window).load( function(){
+         coords = JSON.parse('{{ coords|safe }}');
          map = new OpenLayers.Map("basicMap");
          var mapnik = new OpenLayers.Layer.OSM();
          map.addLayer(mapnik);
@@ -23,15 +21,15 @@
          var zoom = 15;
          var fromProjection = new OpenLayers.Projection("EPSG:4326"); //transform from WGS 1984
          var toProjection = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
-         var lonLatPoint = new OpenLayers.LonLat(longitude, latitude).transform(fromProjection,  toProjection);
-
          markers = new OpenLayers.Layer.Markers("Markers");
          map.addLayer(markers);
-         setMarker(lonLatPoint);
-
+         for (i in coords){
+             var lonLatPoint = new OpenLayers.LonLat(coords[i].lon, coords[i].lat).transform(fromProjection, toProjection);
+             setMarker(lonLatPoint);
+         }
          map.setCenter(lonLatPoint, zoom);
       });
-
+      
       function setMarker(lonLatPoint){
 
         var feature = new OpenLayers.Feature(markers, lonLatPoint);
@@ -67,6 +65,8 @@
       <div id="basicMap"></div>
       <br>
       Explore sua cidade, informe abandonos, ajude a habitação responsável.
+      <br>
+      </%input id="coords" type="hidden" value="{{coords}}"/%>
     </center>
   </body>
 </html>

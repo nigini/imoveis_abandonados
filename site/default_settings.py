@@ -1,0 +1,6 @@
+HOST = "127.0.0.1"
+PORT = 5005
+
+PYBOSSA_HOST = "127.0.0.1"
+PYBOSSA_PORT = 5000
+PYBOSSA_APP = 'abandonados'
