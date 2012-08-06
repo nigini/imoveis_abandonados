@@ -31,9 +31,17 @@ def index():
     return render_template('index.html',app=pybossa_app,coords=json.dumps(coords))
 
 
-@app.route('/info')
-def info():
-    return render_template('info.html')
+@app.route('/info/<int:task_id>')
+def info(task_id):
+
+    pybossa_host = app.config['PYBOSSA_HOST']
+    pybossa_port = app.config['PYBOSSA_PORT']
+    pybossa_server = 'http://%s:%d' %(pybossa_host, pybossa_port)
+    pybossa_app = app.config['PYBOSSA_APP']
+    
+    data = json.load(urllib2.urlopen(pybossa_server+'/api/task?id=%d' %(task_id)))
+    address = data[0]["info"]["coord"]["add"]
+    return render_template('info.html', address=address)
 
 
 if __name__ == '__main__':

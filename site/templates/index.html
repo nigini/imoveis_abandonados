@@ -25,17 +25,18 @@
          map.addLayer(markers);
          for (i in coords){
              var lonLatPoint = new OpenLayers.LonLat(coords[i].lon, coords[i].lat).transform(fromProjection, toProjection);
-             setMarker(lonLatPoint);
+             var taskID = coords[i].task;
+             setMarker(lonLatPoint,taskID);
          }
          map.setCenter(lonLatPoint, zoom);
       });
       
-      function setMarker(lonLatPoint){
+      function setMarker(lonLatPoint,taskID){
 
         var feature = new OpenLayers.Feature(markers, lonLatPoint);
         feature.closeBox = true;
-        feature.popupClass = OpenLayers.Class(OpenLayers.Popup.AnchoredBubble, {minSize: new OpenLayers.Size(50, 180) } );
-        feature.data.popupContentHTML = '<a href="/info">Mais informações</a>';
+        feature.popupClass = OpenLayers.Class(OpenLayers.Popup.AnchoredBubble, {minSize: new OpenLayers.Size(50, 20) } );
+        feature.data.popupContentHTML = '<a href="/info/' + taskID + '">Mais informações</a>';
         feature.data.overflow = "hidden";
 
         var marker = new OpenLayers.Marker(lonLatPoint);
