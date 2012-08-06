@@ -39,9 +39,15 @@ def info(task_id):
     pybossa_server = 'http://%s:%d' %(pybossa_host, pybossa_port)
     pybossa_app = app.config['PYBOSSA_APP']
     
-    data = json.load(urllib2.urlopen(pybossa_server+'/api/task?id=%d' %(task_id)))
-    address = data[0]["info"]["coord"]["add"]
-    return render_template('info.html', address=address)
+    task_data = json.load(urllib2.urlopen(pybossa_server+'/api/task?id=%d' %(task_id)))
+    address = task_data[0]["info"]["coord"]["add"]
+
+    answers_data = json.load(urllib2.urlopen(pybossa_server+'/api/taskrun?id=%d' %(task_id)))
+    size = len(answers_data)
+    photo = None
+    if size>0:
+        photo = answers_data[size-1]["info"]["pictureurl"]
+    return render_template('info.html', address=address, photo=photo, task_id=task_id)
 
 
 if __name__ == '__main__':

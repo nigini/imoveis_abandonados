@@ -6,7 +6,11 @@
       <h1>IMOVEIS ABANDONADOS - SP - INFORMAÇÕES </h1>
       <br>
       <h2>Endereço: {{ address }}.</h2>
-      <img src="http://farm6.staticflickr.com/5148/5803410930_21e3936587_z.jpg" alt="Imagem ilustrativa!">
+      {% if photo %}
+          <img src="{{ photo }}" alt="Imagem ilustrativa!">
+      {% else %} 
+          <img src="http://www.clker.com/cliparts/7/L/Y/h/C/i/image-not-available-hi.png" alt="Foto inexistente!">
+      {% endif %}
       <br>
       Informações sobre o edifício vêm aqui...
       <ul>
@@ -14,6 +18,8 @@
         <li>BLE BLE BLE</li>
         <li>BLI BLI BLI</li>
       </ul>
+      <br>
+      Você tem alguma informação sobre este imóvel? <a href="/task/{{ task_id }}">Ajude clicando aqui!</a>
       <br>
       <a href="/">Voltar ao Mapa!</a>
   </body>
